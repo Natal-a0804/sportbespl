@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Спортивное приключение — бесплатная игра для детей | Папильон Яша</title>
+<style>
+:root{
+  --game-bg:#EAF6EE;
+  --game-card:#FFFFFF;
+  --game-primary:#2E7D32;
+  --game-accent:#FFB300;
+  --game-text:#2B4A33;
+  --game-success:#43A047;
+  --game-error:#E53935;
+  --game-muted:#6B8A70;
+  --game-card2:#F1F8E9;
+  --game-frame:#C8E6C9;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;min-height:100%}
+body{
+  background:linear-gradient(180deg,#EAF6EE,#DFF0E3);
+  color:var(--game-text);
+  font-family:'Segoe UI',Arial,sans-serif;
+  font-size:18px;
+  display:flex;flex-direction:column;align-items:center;
+}
+#app{width:100%;max-width:760px;margin:0 auto;position:relative}
+#topbar{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;
+  background:var(--game-card);
+  border-bottom:3px solid var(--game-frame);
+  position:sticky;top:0;z-index:20;
+}
+#scoreChip{
+  background:var(--game-card2);border:3px solid var(--game-frame);
+  border-radius:999px;padding:6px 14px;font-weight:900;font-size:clamp(16px,3.6vw,21px);
+  color:var(--game-primary);white-space:nowrap;
+}
+#stagePanel{flex:1;min-width:160px;display:flex;flex-direction:row;align-items:center;gap:6px;flex-wrap:wrap}
+#stageLabel{font-size:clamp(14px,3.2vw,19px);font-weight:700;color:var(--game-muted);white-space:nowrap}
+#progWrap{flex:1;min-width:70px;height:14px;background:var(--game-frame);border-radius:999px;overflow:hidden}
+#progFill{height:100%;width:0%;background:linear-gradient(90deg,#66BB6A,#43A047);border-radius:999px;transition:width .5s ease}
+.hidden{display:none!important}
+.screen{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px 16px 80px;min-height:calc(100dvh - 64px);gap:8px;width:100%}
+.screen.on{display:flex}
+h1{font-size:clamp(26px,6vw,42px);color:var(--game-primary)}
+h2{font-size:clamp(24px,5.4vw,36px);color:var(--game-primary)}
+h3{font-size:clamp(20px,4.6vw,30px);color:var(--game-primary)}
+.sub{font-size:clamp(17px,3.8vw,24px);color:var(--game-muted)}
+.taskHead{font-size:clamp(21px,5.6vw,30px);font-weight:700;color:var(--game-primary);line-height:1.3}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:#FFFFFF;color:#1B5E20;
+  border:3px solid var(--game-primary);border-radius:999px;
+  font-size:clamp(17px,3.9vw,24px);font-weight:700;cursor:pointer;
+  padding:8px 22px;min-height:52px;min-width:120px;
+  box-shadow:0 4px 0 rgba(0,0,0,.12);
+  transition:transform .12s ease;
+}
+.btn:active{transform:scale(.96)}
+.btn.big{min-height:60px;font-size:clamp(19px,4.4vw,27px);padding:10px 32px;background:#FFFFFF;color:#1B5E20;border:3px solid var(--game-primary)}
+.btn.small{padding:6px 14px;min-height:44px;font-size:clamp(16px,3.6vw,22px)}
+.btn.locked{background:#E0E0E0;color:#9E9E9E;border-color:#BDBDBD;box-shadow:none;pointer-events:auto;cursor:not-allowed}
+.btn.gray{background:#F5F5F5;color:#9E9E9E;border-color:#E0E0E0;box-shadow:none;min-height:40px;font-size:clamp(14px,3.2vw,18px);padding:4px 12px;min-width:0}
+.opts{display:flex;flex-direction:column;gap:10px;align-items:center;width:100%}
+.heroBig{height:clamp(220px,44vh,430px)}
+.heroBig img{height:100%;width:auto;border-radius:20px;box-shadow:0 6px 14px rgba(0,0,0,.14)}
+.feedback{font-size:clamp(18px,4.2vw,26px);font-weight:900;min-height:28px;display:flex;align-items:center;justify-content:center;gap:6px}
+.feedback.good{color:var(--game-success)}
+.feedback.bad{color:var(--game-error)}
+@keyframes pop{0%{transform:scale(.4)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+.pop{animation:pop .3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.shake{animation:shake .5s ease}
+.videoBox{width:100%;max-width:640px;border-radius:18px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.12)}
+.videoBox video{width:100%;display:block;max-height:36vh;background:transparent}
+.videoBox.wide video{max-height:40vh}
+.subjWrap{width:min(58vw,270px);display:flex;justify-content:center}
+.subjWrap img{display:block;width:100%;height:auto;border-radius:20px;border:4px solid var(--game-frame);box-shadow:0 5px 14px rgba(0,0,0,.12);max-height:26vh;object-fit:contain;background:none}
+.subjWrap.big{width:min(70vw,320px)}
+.subjWrap.big img{max-height:34vh}
+.chipRow{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;width:100%;max-width:640px}
+.wChip{background:#fff;border:3px solid var(--game-primary);border-radius:14px;padding:8px 14px;font-size:clamp(18px,4.4vw,26px);font-weight:900;color:#1B5E20;cursor:pointer;user-select:none;min-height:52px;display:inline-flex;align-items:center;justify-content:center}
+.wChip:active{transform:scale(.95)}
+.wChip.off{opacity:.4;pointer-events:none}
+.sylBoard{background:#fff;border:3px solid var(--game-frame);border-radius:18px;padding:8px 12px;font-size:clamp(30px,7.8vw,50px);font-weight:900;letter-spacing:2px;color:#1B5E20;display:flex;justify-content:center;flex-wrap:nowrap;gap:2px 8px;white-space:nowrap;box-shadow:0 4px 10px rgba(0,0,0,.07);max-width:100%}
+.sylBoard .ghost{opacity:.16}
+.sylBoard .slotWord{letter-spacing:0;font-size:clamp(15px,3.9vw,24px);white-space:nowrap;margin-right:3px}
+.letBtn{min-width:clamp(52px,12vw,76px);min-height:clamp(52px,12vw,76px);font-size:clamp(28px,7vw,44px);font-weight:900;border-radius:14px;border:4px solid var(--game-primary);background:#fff;cursor:pointer}
+.letBtn:active{transform:scale(.96)}
+.letBtn.off{opacity:.35;pointer-events:none}
+.vowel{color:#E53935}
+.cons{color:#1565C0}
+.shapesWrap{display:flex;gap:16px;justify-content:center;align-items:flex-start;width:100%}
+.shapeCol{display:flex;flex-direction:column;gap:10px;align-items:center}
+.shapeColLabel{font-size:clamp(14px,3.4vw,17px);font-weight:900;color:var(--game-muted)}
+.shapeBox{width:clamp(58px,14.5vw,84px);height:clamp(58px,14.5vw,84px)}
+.shapeBox svg{width:100%;height:100%;display:block}
+.paintRow{display:flex;gap:12px;justify-content:center;width:100%}
+.paint{width:clamp(54px,13.5vw,72px);height:clamp(54px,13.5vw,72px);border-radius:50%;border:4px solid #fff;box-shadow:0 3px 9px rgba(0,0,0,.25);cursor:pointer}
+.paint.sel{border-color:var(--game-primary);transform:scale(1.12)}
+.paint:active{transform:scale(.95)}
+.shapeClicks .shapeBox{cursor:pointer}
+.shapeBox.done{pointer-events:none}
+#scr-final .stars{font-size:clamp(34px,7.6vw,50px)}
+#scr-final .videoBox{max-width:560px}
+#scr-final .videoBox video{max-height:38vh}
+.statLine{font-size:clamp(16px,3.6vw,23px);background:var(--game-card);border:3px solid var(--game-frame);border-radius:14px;padding:6px 14px}
+.mama{background:#FFF8E1;border:3px solid #FFB300;border-radius:14px;padding:8px 14px;font-size:clamp(15px,3.4vw,21px);max-width:640px}
+.chip{background:var(--game-card);border:3px solid var(--game-frame);border-radius:999px;padding:6px 16px;font-weight:900;font-size:clamp(16px,3.8vw,23px);color:var(--game-primary)}
+.confetti-piece{position:fixed;top:-16px;z-index:999;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@media (max-width:640px){
+  .screen{padding:10px 12px 70px;gap:8px}
+  #topbar{padding:8px 10px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <div id="scoreChip">⭐ <span id="scoreNum">0</span></div>
+    <div id="stagePanel" class="hidden">
+      <div id="stageLabel">Задание 1 из 3</div>
+      <div id="progWrap"><div id="progFill"></div></div>
+    </div>
+  </div>
+
+  <!-- ======== ТИТУЛ ======== -->
+  <section class="screen on" id="scr-title">
+    <div class="videoBox" id="logoBox" style="max-width:280px;background:transparent;min-height:160px">
+      <video id="logoVid" muted loop autoplay playsinline preload="auto" width="480" height="270" onerror="this.parentElement.style.display='none'">
+        <source src="video/logo_yasha.mp4" type="video/mp4">
+      </video>
+    </div>
+    <h1>Спортивное приключение</h1>
+    <p class="sub">Бесплатная игра с Яшей, Наташей и Баловашкой!</p>
+    <button class="btn big" onclick="startGame()">▶ Играть</button>
+  </section>
+
+  <!-- ======== ВИДЕО-НАЧАЛО ======== -->
+  <section class="screen" id="scr-stih">
+    <h2>Спортивное приключение</h2>
+    <div class="videoBox wide">
+      <video id="stihVid" width="960" height="540" playsinline preload="auto" onclick="playStih()" onended="document.getElementById('stihNext').classList.remove('hidden')" onerror="document.getElementById('stihNext').classList.remove('hidden')">
+        <source src="video/nachalo.mp4" type="video/mp4">
+      </video>
+    </div>
+    <button class="btn small" onclick="playStih()">▶ Послушать</button>
+    <button class="btn hidden" id="stihNext" onclick="goScreen('scr-b1')">Продолжить ➡</button>
+  </section>
+
+  <!-- ======== ЗАДАНИЕ 1: КАРТИНКА — ВИД СПОРТА ======== -->
+  <section class="screen" id="scr-b1">
+    <h3 class="taskHead">Помоги Наташе: найди вид спорта!</h3>
+    <p class="sub">Прочитай слова и нажми все виды спорта, которым нужен этот предмет</p>
+    <div class="chip">Найдено: <span id="b1Found">0</span> из 2</div>
+    <div class="subjWrap" id="b1Pic"></div>
+    <div class="chipRow" id="b1Words"></div>
+    <div class="feedback" id="b1Fb"></div>
+    <div class="opts" style="flex-direction:row;gap:10px;justify-content:center">
+      <button class="btn small gray" onclick="b1Restart()">Ещё разок 🔄</button>
+      <button class="btn hidden" id="b1Skip" onclick="b1Skip()">Пропустить ➡</button>
+      <button class="btn locked hidden" id="b1Next" onclick="b1Next()">Дальше ➡</button>
+    </div>
+  </section>
+
+  <!-- ======== ЗАДАНИЕ 2: БУКВЫ — СЛОВО ======== -->
+  <section class="screen" id="scr-b2">
+    <h3 class="taskHead" id="b2Head">Помоги Яше: собери слово из букв!</h3>
+    <p class="sub" id="b2Sub">Нажми буквы по порядку — собери слово</p>
+    <div class="subjWrap" id="b2Pic"></div>
+    <div class="sylBoard" id="b2Board"></div>
+    <div class="chipRow" id="b2Chips"></div>
+    <div class="feedback" id="b2Fb"></div>
+    <div class="opts" style="flex-direction:row;gap:10px;justify-content:center">
+      <button class="btn small gray" onclick="b2Restart()">Ещё разок 🔄</button>
+      <button class="btn locked hidden" id="b2Next" onclick="b2Next()">Дальше ➡</button>
+    </div>
+  </section>
+
+  <!-- ======== ЗАДАНИЕ 3: РАСКРАСЬ ФИГУРЫ ======== -->
+  <section class="screen" id="scr-b3">
+    <h3 class="taskHead">Помоги Баловашке: раскрась фигуры по образцу и по памяти!</h3>
+    <p class="sub" id="b3Sub">Выбери краску и нажми на фигуру</p>
+    <div class="shapesWrap">
+      <div class="shapeCol" id="b3SampleCol">
+        <div class="shapeColLabel">Образец</div>
+        <div id="b3Sample"></div>
+      </div>
+      <div class="shapeCol shapeClicks" id="b3PaintCol">
+        <div class="shapeColLabel">Раскрась</div>
+        <div id="b3Paint"></div>
+      </div>
+    </div>
+    <div class="paintRow" id="b3Paints"></div>
+    <div class="feedback" id="b3Fb"></div>
+    <div class="opts" style="flex-direction:row;gap:10px;justify-content:center">
+      <button class="btn small gray" onclick="b3Restart()">Ещё разок 🔄</button>
+      <button class="btn locked hidden" id="b3Next" onclick="b3Next()">Дальше ➡</button>
+    </div>
+  </section>
+
+  <!-- ======== МЕЖДУЭТАПНИК ======== -->
+  <section class="screen" id="scr-between">
+    <h2 id="bwTitle">Задание пройдено!</h2>
+    <div class="heroBig" id="bwHero"></div>
+    <h2 id="bwPraise" style="color:var(--game-success)"></h2>
+    <div class="stars" id="bwStars" style="font-size:clamp(34px,7.6vw,50px)">⭐⭐⭐</div>
+    <button class="btn big" id="bwNext" onclick="bwGo()">Дальше ➡</button>
+  </section>
+
+  <!-- ======== ФИНАЛ ======== -->
+  <section class="screen" id="scr-final">
+    <h1>Миссия выполнена!</h1>
+    <div class="stars" id="finStars">⭐⭐⭐</div>
+    <div class="statLine" id="finStats"></div>
+    <div class="videoBox" id="finVideoBox">
+      <video id="finVid" width="960" height="540" playsinline preload="none" onclick="playFin()" onended="finVideoDone()" onerror="finVideoDone()">
+        <source src="video/zvezdochka.mp4" type="video/mp4">
+      </video>
+    </div>
+    <button class="btn small" id="finListen" onclick="playFin()">▶ Послушать</button>
+    <div class="mama hidden" id="mamaBlock">💛 <b>Маме:</b> расскажи маме, какие виды спорта ты видел в игре!</div>
+    <div class="opts">
+      <button class="btn hidden" id="finAgain" onclick="location.reload()">Сыграть ещё раз</button>
+    </div>
+  </section>
+</div>
+
+<script>
+"use strict";
+/* ================= ОБЩЕЕ ================= */
+let score=0,correctTotal=0,wrongTotal=0;
+const MAX_STEPS=3;
+let bwAction=null;
+let curAudio=null;
+
+function hush(){
+  try{if(curAudio){curAudio.pause();curAudio=null;}}catch(e){}
+  document.querySelectorAll("video").forEach(function(v){try{v.pause();}catch(e){}});
+}
+function playSound(name){
+  try{
+    if(curAudio){curAudio.pause();curAudio=null;}
+    const a=new Audio("sounds/"+name+".mp3");
+    curAudio=a;
+    a.play().catch(function(){});
+  }catch(e){}
+}
+function playVThen(key,next){
+  try{
+    if(curAudio){curAudio.pause();curAudio=null;}
+    const a=new Audio("sounds/"+key+".mp3");
+    curAudio=a;
+    const go=function(){if(typeof next==="string"){playSound(next);}else{next();}};
+    a.onended=go;
+    a.onerror=go;
+    a.play().catch(go);
+  }catch(e){if(typeof next==="string"){playSound(next);}else{next();}}
+}
+var PRAISE = ["good_umnichka","good_vnimatelnyj","good_tochno","good_da","good_molodec","good_horosho","good_konechno","good_ugu","good_verno"];
+var HAVE = ["bad_pochti","bad_podumaj","bad_ne_sovsem"];
+let praiseSIdx=0,badSIdx=0;
+function praiseAudio(){playSound(PRAISE[praiseSIdx++%PRAISE.length]);}
+function badAudio(){playSound(HAVE[badSIdx++%HAVE.length]);}
+
+const HERO_BIG={
+  yasha:"images/geroi_yasha.jpg",
+  natasha:"images/geroi_natasha.jpg",
+  balovashka:"images/geroi_balovashka.jpg"
+};
+function shakeEl(el){
+  el.classList.remove("shake");
+  void el.offsetWidth;
+  el.classList.add("shake");
+  setTimeout(function(){el.classList.remove("shake");},550);
+}
+function addScore(n){score+=n;document.getElementById("scoreNum").textContent=score;}
+function starsOf(pct){if(pct>=100)return 3;if(pct>=75)return 2;if(pct>=50)return 1;return 0;}
+function starsStr(n){return n===3?"⭐⭐⭐":n===2?"⭐⭐":n===1?"⭐":"☆";}
+
+function confetti(){
+  const colors=["#FFB300","#43A047","#E53935","#1E88E5","#8E24AA"];
+  for(let i=0;i<34;i++){
+    const p=document.createElement("div");
+    p.className="confetti-piece";
+    const size=6+Math.random()*8;
+    p.style.cssText="left:"+(Math.random()*100)+"vw;width:"+size+"px;height:"+size+"px;background:"+
+      colors[i%colors.length]+";border-radius:"+(Math.random()>.5?"50%":"3px")+
+      ";animation-duration:"+(1.4+Math.random()*1.4)+"s;animation-delay:"+(Math.random()*.25)+"s";
+    document.body.appendChild(p);
+    setTimeout(function(){p.remove();},3000);
+  }
+}
+function paintLetter(ch){
+  return "аеёиоуыэюяАЕЁИОУЫЭЮЯ".indexOf(ch)>=0?'<span class="vowel">'+ch+'</span>':'<span class="cons">'+ch+'</span>';
+}
+function paintWord(w){
+  let h="";
+  for(let i=0;i<w.length;i++){
+    const ch=w[i];
+    if("аеёиоуыэюяАЕЁИОУЫЭЮЯ".indexOf(ch)>=0){h+='<span class="vowel">'+ch+'</span>';}
+    else if(".,!?:;—()".indexOf(ch)>=0){h+=ch;}
+    else if(ch!==" "){h+='<span class="cons">'+ch+'</span>';}
+    else{h+=" ";}
+  }
+  return h;
+}
+
+/* ================= ЭКРАНЫ ================= */
+function goScreen(id){
+  hush();
+  document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("on");});
+  const el=document.getElementById(id);
+  el.classList.add("on");
+  window.scrollTo(0,0);
+  if(ONSHOW[id])ONSHOW[id]();
+}
+const ONSHOW={};
+function setStage(label,done,total){
+  const panel=document.getElementById("stagePanel");
+  if(label===null){panel.classList.add("hidden");return;}
+  panel.classList.remove("hidden");
+  document.getElementById("stageLabel").textContent=label;
+  document.getElementById("progFill").style.width=(total?Math.round(done/total*100):0)+"%";
+}
+function stageStepTo(s){
+  setStage("Задание "+s+" из "+MAX_STEPS,s,MAX_STEPS);
+}
+function showBetween(title,hero,praise,stars,next){
+  document.getElementById("bwTitle").textContent=title;
+  document.getElementById("bwHero").innerHTML='<img src="'+HERO_BIG[hero]+'" alt="">';
+  document.getElementById("bwPraise").textContent=praise;
+  document.getElementById("bwStars").textContent=starsStr(stars);
+  bwAction=next;
+  goScreen("scr-between");
+  praiseAudio();
+  confetti();
+}
+function bwGo(){setStage(null,0,0);const f=bwAction;bwAction=null;if(f)f();}
+ONSHOW["scr-between"]=function(){setStage(null,0,0);};
+
+/* ================= ТИТУЛ ================= */
+let titleSaid=false;
+function startGame(){
+  score=0;correctTotal=0;wrongTotal=0;
+  praiseSIdx=0;badSIdx=0;
+  b1R=0;b2Idx=0;b3Rd=0;
+  addScore(0);
+  /* уходим с титула СРАЗУ — переход не зависит от звука */
+  goScreen("scr-stih");
+}
+ONSHOW["scr-title"]=function(){
+  const v=document.getElementById("logoVid");
+  if(v){v.play().catch(function(){});}
+};
+
+/* ================= ВИДЕО-НАЧАЛО ================= */
+let stihStarted=false;
+function playStih(){
+  const v=document.getElementById("stihVid");
+  if(!v)return;
+  hush();
+  stihStarted=true;
+  v.currentTime=0;
+  v.play().catch(function(){});
+}
+ONSHOW["scr-stih"]=function(){
+  setStage(null,0,0);
+  stihStarted=false;
+  document.getElementById("stihNext").classList.add("hidden");
+  const v=document.getElementById("stihVid");
+  if(v){v.preload="auto";v.load();}
+  /* название звучит здесь, затем видео; страховки с флагом */
+  if(!titleSaid){
+    titleSaid=true;
+    playVThen("title_intro",function(){playStih();});
+    setTimeout(function(){
+      const el=document.querySelector(".screen.on");
+      if(el&&el.id==="scr-stih"&&!stihStarted){playStih();}
+    },7000);
+  }else{
+    playStih();
+  }
+};
+
+/* ================= ЗАДАНИЕ 1: КАРТИНКА — ВИД СПОРТА ================= */
+/* в каждом раунде ДВА верных слова (как в «Весёлом спорте» 7 лет) */
+const B1=[
+  {img:"myach",   words:["хоккей","футбол","гимнастика","волейбол"], good:["футбол","волейбол"],
+   ansImg:{"футбол":"komanda","волейбол":"volley"}},
+  {img:"katok",   words:["сноуборд","плавание","хоккей","фигурное катание","волейбол"], good:["фигурное катание","хоккей"],
+   ansImg:{"фигурное катание":"figkat","хоккей":"hokkeist"}},
+  {img:"bassein", words:["водное поло","синхронное плавание","гимнастика","баскетбол"], good:["синхронное плавание","водное поло"],
+   ansImg:{"синхронное плавание":"sinhplav","водное поло":"vodnoepolo"}}
+];
+let b1R=0,b1Err=0,b1Found=0,b1Correct=0,b1Timer=null;
+function b1Show(){
+  stageStepTo(1);
+  b1Err=0;b1Found=0;
+  if(b1Timer){clearTimeout(b1Timer);b1Timer=null;}
+  playSound(["b1_r1","b1_r2","b1_r3"][b1R]);
+  document.getElementById("b1Fb").textContent="";
+  document.getElementById("b1Fb").className="feedback";
+  document.getElementById("b1Skip").classList.add("hidden");
+  const nb=document.getElementById("b1Next");
+  nb.classList.add("hidden");nb.classList.add("locked");nb.classList.remove("ready");
+  const r=B1[b1R];
+  document.getElementById("b1Found").textContent="0";
+  const pic=document.getElementById("b1Pic");
+  pic.className="subjWrap";
+  pic.innerHTML='<img src="images/'+r.img+'.jpg" alt="">';
+  const words=document.getElementById("b1Words");
+  words.innerHTML="";
+  shuffle(r.words.slice()).forEach(function(w){
+    const c=document.createElement("button");
+    c.className="wChip";
+    if(w.indexOf(" ")>=0){
+      c.style.flexDirection="column";
+      c.style.gap="0";
+      c.innerHTML=w.split(" ").map(function(x){return '<span>'+paintWord(x)+'</span>';}).join("");
+    }else{
+      c.innerHTML=paintWord(w);
+    }
+    c.dataset.w=w;
+    c.onclick=function(){
+      if(nb.classList.contains("ready"))return;
+      if(c.classList.contains("off"))return;
+      if(r.good.indexOf(w)>=0){
+        c.classList.add("off");c.onclick=null;
+        b1Found++;b1Correct++;correctTotal++;addScore(1);
+        const pic=document.getElementById("b1Pic");
+        pic.classList.add("big");
+        pic.innerHTML='<img src="images/'+r.ansImg[w]+'.jpg" alt="">';
+        document.getElementById("b1Found").textContent=b1Found;
+        document.getElementById("b1Fb").className="feedback";
+        document.getElementById("b1Fb").textContent="";
+        if(b1Found>=2){b1Win();}
+      }else{
+        b1Lose(c);
+      }
+    };
+    words.appendChild(c);
+  });
+}
+function b1Win(){
+  const r=B1[b1R];
+  /* только верный ответ: все слова-кнопки исчезают */
+  document.querySelectorAll("#b1Words .wChip").forEach(function(c){c.style.display="none";});
+  document.getElementById("b1Pic").classList.add("big");
+  document.getElementById("b1Pic").classList.add("pop");
+  praiseAudio();
+  const nb=document.getElementById("b1Next");
+  if(b1R>=B1.length-1){
+    nb.classList.remove("hidden");nb.classList.remove("locked");nb.classList.add("ready");
+  }else{
+    b1Timer=setTimeout(function(){b1R++;b1Show();},1800);
+  }
+}
+function b1Lose(btn){
+  wrongTotal++;b1Err++;
+  shakeEl(btn);
+  document.getElementById("b1Fb").className="feedback bad pop";
+  document.getElementById("b1Fb").textContent="Почти! Прочитай ещё раз.";
+  badAudio();
+  if(b1Err>=3){document.getElementById("b1Skip").classList.remove("hidden");}
+}
+function b1Skip(){
+  document.querySelectorAll("#b1Words .wChip").forEach(function(c){c.classList.add("off");c.onclick=null;});
+  b1Found=2;
+  document.getElementById("b1Found").textContent="2";
+  b1Win();
+}
+function b1Next(){
+  showBetween("Задание 1 пройдено!","natasha","Ты прочитал все слова и нашёл спорт!",starsOf(100),function(){goScreen("scr-b2");});
+  b1R=0;b1Correct=0;
+}
+ONSHOW["scr-b1"]=b1Show;
+
+/* ================= ЗАДАНИЕ 2: БУКВЫ — СЛОВО ================= */
+const B2=[
+  {img:"raketka3",  kind:"word", word:"РАКЕТКА"},
+  {img:"vorota",   kind:"word", word:"ВОРОТА"},
+  {img:"klyushka", kind:"word", word:"КЛЮШКА"},
+  {img:"shtangist",kind:"sent", words:["Атлет","поднимает","штангу."]},
+  {img:"vratar",   kind:"sent", words:["Вратарь","ловит","мяч."]}
+];
+let b2Idx=0,b2Err=0,b2Correct=0,b2Pos=0,b2Timer=null;
+function b2Show(){
+  stageStepTo(2);
+  b2Err=0;b2Pos=0;
+  if(b2Timer){clearTimeout(b2Timer);b2Timer=null;}
+  if(b2Idx===0){playSound("v02");}
+  if(b2Idx===3){playSound("b2_sent");}
+  document.getElementById("b2Fb").textContent="";
+  document.getElementById("b2Fb").className="feedback";
+  const nb=document.getElementById("b2Next");
+  nb.classList.add("hidden");nb.classList.add("locked");nb.classList.remove("ready");
+  const r=B2[b2Idx];
+  if(r.kind==="word"){
+    document.getElementById("b2Head").textContent="Помоги Яше: собери слово из букв!";
+    document.getElementById("b2Sub").textContent="Нажми буквы по порядку — собери слово";
+  }else{
+    document.getElementById("b2Head").textContent="Помоги Яше: собери из слов предложение!";
+    document.getElementById("b2Sub").textContent="Поставь слова по порядку";
+  }
+  const b2pic=document.getElementById("b2Pic");
+  b2pic.className="subjWrap"+(r.kind==="sent"?" big":"");
+  b2pic.innerHTML='<img src="images/'+r.img+'.jpg" alt="">';
+  const board=document.getElementById("b2Board");
+  board.innerHTML="";
+  if(r.kind==="word"){
+    for(let i=0;i<r.word.length;i++){
+      const s=document.createElement("span");
+      s.className="ghost";
+      s.innerHTML=paintLetter(r.word[i]);
+      board.appendChild(s);
+    }
+    const chips=document.getElementById("b2Chips");
+    chips.innerHTML="";
+    shuffle(r.word.split("")).forEach(function(ch){
+      const b=document.createElement("button");
+      b.className="letBtn";
+      b.innerHTML=paintLetter(ch);
+      b.dataset.ch=ch;
+      b.onclick=function(){
+        if(nb.classList.contains("ready"))return;
+        if(b.classList.contains("off"))return;
+        if(ch===r.word[b2Pos]){
+          board.children[b2Pos].classList.remove("ghost");
+          board.children[b2Pos].classList.add("pop");
+          b.classList.add("off");b.onclick=null;
+          b2Pos++;
+          if(b2Pos>=r.word.length){b2Win();}
+        }else{
+          b2Lose(b);
+        }
+      };
+      chips.appendChild(b);
+    });
+  }else{
+    r.words.forEach(function(w,i){
+      const s=document.createElement("span");
+      s.className="ghost slotWord";
+      s.innerHTML=paintWord(w);
+      s.style.marginRight="8px";
+      board.appendChild(s);
+    });
+    const chips=document.getElementById("b2Chips");
+    chips.innerHTML="";
+    shuffle(r.words.slice()).forEach(function(w){
+      const c=document.createElement("button");
+      c.className="wChip";
+      c.innerHTML=paintWord(w);
+      c.dataset.w=w;
+      c.onclick=function(){
+        if(nb.classList.contains("ready"))return;
+        if(c.classList.contains("off"))return;
+        if(w===r.words[b2Pos]){
+          board.children[b2Pos].classList.remove("ghost");
+          board.children[b2Pos].classList.add("pop");
+          c.classList.add("off");c.onclick=null;
+          b2Pos++;
+          if(b2Pos>=r.words.length){b2Win();}
+        }else{
+          b2Lose(c);
+        }
+      };
+      chips.appendChild(c);
+    });
+  }
+}
+function b2Win(){
+  b2Correct++;correctTotal++;addScore(1);
+  document.getElementById("b2Fb").className="feedback";
+  document.getElementById("b2Fb").textContent="";
+  /* предложение читается голосом ПОСЛЕ того, как ребёнок его собрал */
+  if(B2[b2Idx].kind==="sent"){playSound(b2Idx===3?"b2_shtanga":"b2_vratar");}
+  else{praiseAudio();}
+  if(b2Idx>=B2.length-1){
+    const nb=document.getElementById("b2Next");
+    nb.classList.remove("hidden");nb.classList.remove("locked");nb.classList.add("ready");
+  }else{
+    b2Timer=setTimeout(function(){b2Idx++;b2Show();},1600);
+  }
+}
+function b2Lose(btn){
+  wrongTotal++;b2Err++;
+  shakeEl(btn);
+  document.getElementById("b2Fb").className="feedback bad pop";
+  document.getElementById("b2Fb").textContent="Почти! Посмотри на бледные буквы-подсказки.";
+  badAudio();
+}
+function b2Next(){
+  showBetween("Задание 2 пройдено!","yasha","Ты собрал все слова и предложения!",starsOf(100),function(){goScreen("scr-b3");});
+  b2Idx=0;b2Correct=0;
+}
+ONSHOW["scr-b2"]=b2Show;
+
+/* ================= ЗАДАНИЕ 3: РАСКРАСЬ ФИГУРЫ ================= */
+const B3_SHAPES=["sq","tr","ci","re"];
+function shapeSVG(id,color){
+  const inner={
+    sq:'<rect x="10" y="10" width="80" height="80" rx="8"/>',
+    tr:'<polygon points="50,8 94,88 6,88"/>',
+    ci:'<circle cx="50" cy="50" r="42"/>',
+    re:'<rect x="6" y="22" width="88" height="56" rx="8"/>'
+  }[id];
+  const fill=color||"transparent";
+  const stroke=color?"#5D6D5E":"#9E9E9E";
+  const dash=color?"":' stroke-dasharray="7 6"';
+  return '<svg viewBox="0 0 100 100">'+inner.replace("/>",' fill="'+fill+'" stroke="'+stroke+'" stroke-width="4"'+dash+'/>')+'</svg>';
+}
+const B3_ROUNDS=[
+  {colors:["#1565C0","#F9A825","#E53935","#43A047"], hide:false},
+  {colors:["#E53935","#43A047","#1565C0","#F9A825"], hide:true}
+];
+const B3_PAINTS=["#1565C0","#F9A825","#43A047","#E53935"];
+let B3_DONE=[];
+let b3Rd=0,b3Err=0,b3Correct=0,b3Done=0,b3Picked=null,b3Timer=null,b3Shown=false;
+function b3RenderSample(visible){
+  const box=document.getElementById("b3Sample");
+  box.innerHTML="";
+  const r=B3_ROUNDS[b3Rd];
+  B3_SHAPES.forEach(function(id,i){
+    const d=document.createElement("div");
+    d.className="shapeBox";
+    d.innerHTML=shapeSVG(id,r.colors[i]);
+    box.appendChild(d);
+  });
+  document.getElementById("b3SampleCol").style.visibility=visible?"visible":"hidden";
+}
+function b3RenderPaint(){
+  const box=document.getElementById("b3Paint");
+  box.innerHTML="";
+  B3_SHAPES.forEach(function(id,i){
+    const d=document.createElement("div");
+    d.className="shapeBox"+(B3_DONE[i]?" done":"");
+    d.dataset.i=String(i);
+    d.innerHTML=shapeSVG(id,B3_DONE[i]?B3_ROUNDS[b3Rd].colors[i]:null);
+    d.onclick=function(){
+      const nb=document.getElementById("b3Next");
+      if(nb.classList.contains("ready"))return;
+      if(d.classList.contains("done"))return;
+      if(!b3Picked){
+        document.getElementById("b3Fb").className="feedback bad";
+        document.getElementById("b3Fb").textContent="Сначала выбери краску.";
+        return;
+      }
+      const r=B3_ROUNDS[b3Rd];
+      if(b3Picked===r.colors[i]){
+        B3_DONE[i]=1;b3Done++;
+        d.classList.add("done");
+        d.innerHTML=shapeSVG(id,r.colors[i]);
+        d.classList.add("pop");
+        b3Correct++;correctTotal++;addScore(1);
+        document.getElementById("b3Fb").className="feedback";
+        document.getElementById("b3Fb").textContent="";
+        if(b3Done>=4){b3Win();}
+      }else{
+        wrongTotal++;b3Err++;
+        d.innerHTML=shapeSVG(id,b3Picked);
+        shakeEl(d);
+        document.getElementById("b3Fb").className="feedback bad pop";
+        document.getElementById("b3Fb").textContent="Почти! Попробуй другой цвет.";
+        badAudio();
+        b3Timer=setTimeout(function(){
+          if(!d.classList.contains("done")){d.innerHTML=shapeSVG(id,null);}
+        },900);
+      }
+    };
+    box.appendChild(d);
+  });
+}
+function b3Show(){
+  stageStepTo(3);
+  b3Err=0;b3Done=0;b3Picked=null;b3Shown=false;
+  if(b3Timer){clearTimeout(b3Timer);b3Timer=null;}
+  B3_DONE=[0,0,0,0];
+  document.getElementById("b3Fb").textContent="";
+  document.getElementById("b3Fb").className="feedback";
+  const nb=document.getElementById("b3Next");
+  nb.classList.add("hidden");nb.classList.add("locked");nb.classList.remove("ready");
+  playSound(b3Rd===0?"v10":"v11");
+  b3RenderSample(true);
+  b3RenderPaint();
+  const paints=document.getElementById("b3Paints");
+  paints.innerHTML="";
+  B3_PAINTS.forEach(function(hex){
+    const p=document.createElement("div");
+    p.className="paint";
+    p.style.background=hex;
+    p.onclick=function(){
+      document.querySelectorAll("#b3Paints .paint").forEach(function(x){x.classList.remove("sel");});
+      p.classList.add("sel");
+      b3Picked=hex;
+    };
+    paints.appendChild(p);
+  });
+  if(B3_ROUNDS[b3Rd].hide){
+    document.getElementById("b3Sub").textContent="Посмотри и запомни цвета образца!";
+    b3Timer=setTimeout(function(){
+      b3Shown=true;
+      b3RenderSample(false);
+      document.getElementById("b3Sub").textContent="Теперь раскрась фигуры по памяти!";
+    },5000);
+  }else{
+    document.getElementById("b3Sub").textContent="Выбери краску и нажми на фигуру";
+  }
+}
+function b3Win(){
+  document.getElementById("b3Fb").className="feedback good pop";
+  document.getElementById("b3Fb").textContent="Ты раскрасил все фигуры!";
+  praiseAudio();
+  const nb=document.getElementById("b3Next");
+  if(b3Rd===0){
+    b3Timer=setTimeout(function(){b3Rd=1;b3Show();},1800);
+  }else{
+    /* показать образец для проверки */
+    b3RenderSample(true);
+    b3Timer=setTimeout(function(){
+      nb.classList.remove("hidden");nb.classList.remove("locked");nb.classList.add("ready");
+    },2500);
+  }
+}
+function b3Next(){
+  showBetween("Задание 3 пройдено!","balovashka","Ты раскрасил фигуры по образцу и по памяти!",starsOf(100),function(){goScreen("scr-final");});
+  b3Rd=0;b3Correct=0;
+}
+ONSHOW["scr-b3"]=b3Show;
+
+/* ================= ФИНАЛ: ЗВЁЗДОЧКА -> МАМЕ ================= */
+function playFin(){
+  const v=document.getElementById("finVid");
+  if(!v)return;
+  hush();
+  v.currentTime=0;
+  v.play().catch(function(){});
+}
+function finVideoDone(){
+  document.getElementById("finVideoBox").classList.add("hidden");
+  document.getElementById("finListen").classList.add("hidden");
+  document.getElementById("mamaBlock").classList.remove("hidden");
+  document.getElementById("finAgain").classList.remove("hidden");
+}
+ONSHOW["scr-final"]=function(){
+  setStage(null,0,0);
+  const max=19;
+  const pct=Math.round(score/max*100);
+  const st=starsOf(pct);
+  document.getElementById("finStars").textContent=starsStr(st);
+  document.getElementById("finStats").innerHTML="Баллы: <b>"+score+"</b> из "+max+" · Верных: <b>"+correctTotal+"</b> · Ошибок: <b>"+wrongTotal+"</b>";
+  document.getElementById("mamaBlock").classList.add("hidden");
+  document.getElementById("finAgain").classList.add("hidden");
+  document.getElementById("finVideoBox").classList.remove("hidden");
+  document.getElementById("finListen").classList.remove("hidden");
+  const v=document.getElementById("finVid");
+  if(v){v.preload="auto";v.load();playFin();}
+  confetti();
+};
+
+/* ================= ЕЩЁ РАЗОК — ВОЗВРАТ К НАЧАЛУ ЗАДАНИЯ ================= */
+function b1Restart(){if(b1Timer){clearTimeout(b1Timer);b1Timer=null;}b1R=0;b1Correct=0;b1Show();}
+function b2Restart(){if(b2Timer){clearTimeout(b2Timer);b2Timer=null;}b2Idx=0;b2Correct=0;b2Show();}
+function b3Restart(){
+  if(b3Timer){clearTimeout(b3Timer);b3Timer=null;}
+  b3Rd=0;b3Correct=0;b3Show();
+}
+
+/* ================= перемешивание ================= */
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    const t=a[i];a[i]=a[j];a[j]=t;
+  }
+  return a;
+}
+/* 'images/' + имя + '.jpg' */
+/* 'sounds/' + имя + '.mp3' */
+/* для зонда/проверок: показать экран по id */
+function show(id){goScreen(id);}
+</script>
+</body>
+</html>
